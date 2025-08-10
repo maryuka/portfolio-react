@@ -1,0 +1,31 @@
+name: build-and-deploy
+
+strategy:
+  matrix:
+    node-version: ['22.x']
+
+jobs:
+  s3ls:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v4.3.1
+        with:
+          aws-region: 'us-east-1' # リージョンを指定
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # 作成した IAM ロールの ARN
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Build
+        working-directory: ./build
+        run: |
+          npm install
+          npm run build
+      - name: Deploy app build to S3 bucket
+        run: aws s3 sync ./build/dist/ ${{ secrets.S3_BUCKET }} --delete
