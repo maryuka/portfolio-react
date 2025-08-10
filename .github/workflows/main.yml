@@ -1,6 +1,10 @@
 name: build-and-deploy
 
-on: push
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   s3build:
     runs-on: ubuntu-latest
@@ -11,6 +15,9 @@ jobs:
       matrix:
         node-version: ['22.x']
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v4.3.1
         with:
@@ -18,14 +25,19 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # 作成した IAM ロールの ARN
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
-      - name: Build
-        working-directory: build
-        run: |
-          npm install
-          npm run build
-      - name: Deploy app build to S3 bucket
-        run: aws s3 sync ./build/dist/ ${{ secrets.S3_BUCKET }} --delete
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync ./build/client/ ${{ secrets.S3_BUCKET }} --delete
