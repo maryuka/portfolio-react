@@ -1,5 +1,6 @@
 name: build-and-deploy
 
+on: push
 jobs:
   s3build:
     runs-on: ubuntu-latest
