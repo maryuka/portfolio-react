@@ -1,14 +1,14 @@
 name: build-and-deploy
 
 jobs:
-  strategy:
-    matrix:
-      node-version: ['22.x']
-  s3ls:
+  s3build:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+    strategy:
+      matrix:
+        node-version: ['22.x']
     steps:
       - name: "Configure AWS Credentials"
         uses: aws-actions/configure-aws-credentials@v4.3.1
