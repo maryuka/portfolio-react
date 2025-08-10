@@ -1,10 +1,9 @@
 name: build-and-deploy
 
-strategy:
-  matrix:
-    node-version: ['22.x']
-
 jobs:
+  strategy:
+    matrix:
+      node-version: ['22.x']
   s3ls:
     runs-on: ubuntu-latest
     permissions:
